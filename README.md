@@ -99,8 +99,21 @@ Here you can change the dampening factor value for any hour. Values from 0.0 - 1
 
 [<img src="https://github.com/oziee/ha-solcast-solar/blob/v3/.github/SCREENSHOTS/dampopt.png" width="200">](https://github.com/oziee/ha-solcast-solar/blob/v3/.github/SCREENSHOTS/dampopt.png)
 
+## PV Estimate Configuration
+
+Solcast provides three different forecasts for each time period. You can choose which forecast you want your own forecast data to be based on.
+
+Tweaking this setting may help increase the accuracy of your forecasts, particularly in areas where cloud cover conditions change rapidly.
+
+| PV Estimate | Description |
+| --- | --- |
+| `pv_estimate` | Default setting - Prediction based on most current data |
+| `pv_estimate10` | 10th percentile scenario of clearness (i.e. more cloudy than expected) |
+| `pv_estimate90` | 90th percentile scenario of clearness (i.e. less cloudy than expected) |
+
+
 ## Services
-There are 3 services for this integration that you can use in automations ([Configuration](#configuration))
+There are 5 services for this integration that you can use in automations ([Configuration](#configuration))
 
 | Service | Action |
 | --- | --- |
@@ -108,6 +121,7 @@ There are 3 services for this integration that you can use in automations ([Conf
 | `solcast_solar.clear_all_solcast_data` | Deletes the `solcast.json` cached file |
 | `solcast_solar.query_forecast_data` | Returns a list of forecast data using a datetime range start - end |
 | `solcast_solar.set_dampening` | Updates the hourly dampening factors |
+| `solcast_solar.set_pv_estimate` | Updates the pv_estimate used for forecasts |
 
 ### Basic HA Automation to manual poll Solcast API data
 Create a new HA automation and setup your prefered triggers to manually poll for new data  

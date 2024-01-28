@@ -50,6 +50,7 @@ class ConnectionOptions:
     file_path: str
     tz: timezone
     dampening: dict
+    pv_estimate: str
 
 
 class SolcastApi:
@@ -76,7 +77,8 @@ class SolcastApi:
         self._detailedForecasts = []
         self._loaded_data = False
         self._serialize_lock = asyncio.Lock()
-        self._damp =options.dampening
+        self._damp = options.dampening
+        self._pv_estimate = options.pv_estimate
         
     async def serialize_data(self):
         """Serialize data to file."""
@@ -361,7 +363,7 @@ class SolcastApi:
                 for d in self._data_forecasts
                 if d["period_start"] >= da and d["period_start"] < da + timedelta(hours=1)
             )
-            m = sum(z["pv_estimate"] for z in g) / len(g)
+            m = sum(z[self._pv_estimate] for z in g) / len(g)
 
             return int(m * 1000)
         except Exception as ex:
@@ -374,7 +376,7 @@ class SolcastApi:
             m = min(
                 (z for z in self._data_forecasts), key=lambda x: abs(x["period_start"] - da)
             )
-            return int(m["pv_estimate"] * 1000)
+            return int(m[self._pv_estimate] * 1000)
         except Exception as ex:
             return 0.0
 
@@ -388,7 +390,7 @@ class SolcastApi:
                 for d in self._data_forecasts
                 if d["period_start"].astimezone(tz).date() == da
             )
-            m = max(z["pv_estimate"] for z in g)
+            m = max(z[self._pv_estimate] for z in g)
             return int(m * 1000)
         except Exception as ex:
             return 0
@@ -404,7 +406,7 @@ class SolcastApi:
                 if d["period_start"].astimezone(tz).date() == da
             )
             #HA strips any TZ info set and forces UTC tz, so dont need to return with local tz info
-            return max((z for z in g), key=lambda x: x["pv_estimate"])["period_start"]
+            return max((z for z in g), key=lambda x: x[self._pv_estimate])["period_start"]
         except Exception as ex:
             return None
 
@@ -425,7 +427,7 @@ class SolcastApi:
                 if d["period_start"].astimezone(tz).date() == da.date() and d["period_start"].astimezone(tz) >= da
             )
 
-            return sum(z["pv_estimate"] for z in g) / 2
+            return sum(z[self._pv_estimate] for z in g) / 2
         except Exception as ex:
             return 0.0
 
@@ -448,7 +450,7 @@ class SolcastApi:
 
             delta: timedelta = curr["period_start"] - prev["period_start"]
             diff_hours = delta.total_seconds() / 3600
-            ret += (prev["pv_estimate"] + curr["pv_estimate"]) / 2 * diff_hours
+            ret += (prev[self._pv_estimate] + curr[self._pv_estimate]) / 2 * diff_hours
             needed_delta -= delta
 
         return ret
@@ -656,21 +658,21 @@ class SolcastApi:
             lastk = -1
             for v in self._data_forecasts:
                 d = v['period_start'].isoformat()
-                if v['pv_estimate'] == 0.0:
+                if v[self._pv_estimate] == 0.0:
                     if lastv > 0.0:
-                        wh_hours[d] = round(v['pv_estimate'] * 500,0)
+                        wh_hours[d] = round(v[self._pv_estimate] * 500,0)
                         wh_hours[lastk] = 0.0
                     lastk = d
-                    lastv = v['pv_estimate']
+                    lastv = v[self._pv_estimate]
                 else:
                     if lastv == 0.0:
                         #add the last one
                         wh_hours[lastk] = round(lastv * 500,0)
 
-                    wh_hours[d] = round(v['pv_estimate'] * 500,0)
+                    wh_hours[d] = round(v[self._pv_estimate] * 500,0)
                     
                     lastk = d
-                    lastv = v['pv_estimate']
+                    lastv = v[self._pv_estimate]
         except Exception as e:
             _LOGGER.error("SOLCAST - makeenergydict: %s", traceback.format_exc())
 
@@ -697,7 +699,7 @@ class SolcastApi:
                     if zz.date() < lastday and zz.date() > yesterday:
                         h = f"{zz.hour}"
                         if zz.date() == today:
-                            tally += x["pv_estimate"] * 0.5 * self._damp[h]
+                            tally += x[self._pv_estimate] * 0.5 * self._damp[h]
                             
                         itm = next((item for item in _forecasts if item["period_start"] == z), None)
                         if itm:

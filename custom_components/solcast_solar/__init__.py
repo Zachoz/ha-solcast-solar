@@ -20,8 +20,10 @@ from .const import (
     SERVICE_CLEAR_DATA, 
     SERVICE_UPDATE, 
     SERVICE_QUERY_FORECAST_DATA, 
-    SERVICE_SET_DAMPENING, 
-    SOLCAST_URL
+    SERVICE_SET_DAMPENING,
+    SERVICE_SET_PV_ESTIMATE,
+    SOLCAST_URL,
+    CONF_PV_ESTIMATE
 )
 
 from .coordinator import SolcastUpdateCoordinator
@@ -51,6 +53,12 @@ SERVICE_QUERY_SCHEMA: Final = vol.All(
         }
 )
 
+SERVICE_PV_ESTIMATE_SCHEMA: Final = vol.All(
+        {
+            vol.Required(CONF_PV_ESTIMATE) : vol.In(["pv_estimate", "pv_estimate10", "pv_estimate90"]),
+        }
+)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up solcast parameters."""
@@ -74,6 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.config.path('solcast.json'),
         dt_util.get_time_zone(hass.config.time_zone),
         optdamp,
+        entry.options[CONF_PV_ESTIMATE],
     )
 
     solcast = SolcastApi(aiohttp_client.async_get_clientsession(hass), options)
@@ -170,6 +179,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except intent.IntentHandleError as err:
             raise HomeAssistantError(f"Error processing {SERVICE_SET_DAMPENING}: {err}") from err
 
+    async def handle_service_set_pv_estimate(call: ServiceCall):
+        """Handle service call"""
+        try:
+            _LOGGER.info(f"SOLCAST - Service call: {SERVICE_SET_PV_ESTIMATE}")
+
+            estimate = call.data.get(CONF_PV_ESTIMATE, None)
+
+            if estimate == None:
+                raise HomeAssistantError(f"Error processing {SERVICE_SET_PV_ESTIMATE}: Empty pv_estimate string")
+            else:
+                opt = {**entry.options}
+                opt['pv_estimate'] = estimate
+
+                solcast._pv_estimate = estimate
+                hass.config_entries.async_update_entry(entry, options=opt)
+        except intent.IntentHandleError as err:
+            raise HomeAssistantError(f"Error processing {SERVICE_SET_PV_ESTIMATE}: {err}") from err
+
     hass.services.async_register(
         DOMAIN, SERVICE_UPDATE, handle_service_update_forecast
     )
@@ -186,6 +213,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         DOMAIN, SERVICE_SET_DAMPENING, handle_service_set_dampening, SERVICE_DAMP_SCHEMA
     )
 
+    hass.services.async_register(
+        DOMAIN, SERVICE_SET_PV_ESTIMATE, handle_service_set_pv_estimate, SERVICE_PV_ESTIMATE_SCHEMA
+    )
+
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -198,6 +229,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_remove(DOMAIN, SERVICE_CLEAR_DATA)
     hass.services.async_remove(DOMAIN, SERVICE_QUERY_FORECAST_DATA)
     hass.services.async_remove(DOMAIN, SERVICE_SET_DAMPENING)
+    hass.services.async_remove(DOMAIN, SERVICE_SET_PV_ESTIMATE)
 
     return unload_ok
 

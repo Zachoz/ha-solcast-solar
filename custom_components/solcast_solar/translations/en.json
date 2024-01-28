@@ -26,6 +26,12 @@
                 },
                 "description": "Your Solcast API Account Key"
             },
+            "pv_estimate": {
+                "data": {
+                    "pv_estimate": "pv_estimate"
+                },
+                "description": "Modify the pv_estimate measurement used to generate forecast"
+            },
             "dampen": {
                 "data": {
                     "damp00": "00:00",
@@ -65,7 +71,8 @@
         "solcast_config_action": {
             "options": {
                 "configure_api": "Solcast API key",
-                "configure_dampening": "Configure Dampening"
+                "configure_dampening": "Configure Dampening",
+                "configure_pv_estimate": "Configure PV Estimate"
             }
         }
     },
@@ -106,6 +113,16 @@
                 "damp_factor": {
                     "name": "Dampening string",
                     "description": "String of hourly dampening factor values comma seperated."
+                }
+            }
+        },
+        "set_pv_estimate": {
+            "name": "Sets pv_estimate",
+            "description": "Sets pv_estimate used for forecast generation.",
+            "fields": {
+                "pv_estimate": {
+                    "name": "PV Estimate",
+                    "description": "pv_estimate to use for forecasting. (pv_estimate, pv_estimate10, pv_estimate90)"
                 }
             }
         }

@@ -13,7 +13,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 from homeassistant import config_entries
-from .const import DOMAIN, CONFIG_OPTIONS
+from .const import DOMAIN, CONFIG_OPTIONS, CONF_PV_ESTIMATE
 
 @config_entries.HANDLERS.register(DOMAIN)
 class SolcastSolarFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -42,6 +42,7 @@ class SolcastSolarFlowHandler(ConfigFlow, domain=DOMAIN):
                 data = {},
                 options={
                     CONF_API_KEY: user_input[CONF_API_KEY],
+                    CONF_PV_ESTIMATE: user_input[CONF_PV_ESTIMATE],
                     "damp00":1.0,
                     "damp01":1.0,
                     "damp02":1.0,
@@ -96,6 +97,8 @@ class SolcastSolarOptionFlowHandler(OptionsFlow):
                     return await self.async_step_dampen()
                 elif nextAction == "configure_api":
                     return await self.async_step_api()
+                elif nextAction == "configure_pv_estimate":
+                    return await self.async_step_pv_estimate()
                 else:
                     errors["base"] = "incorrect_options_action"
 
@@ -138,6 +141,34 @@ class SolcastSolarOptionFlowHandler(OptionsFlow):
                         CONF_API_KEY,
                         default=self.config_entry.options.get(CONF_API_KEY),
                     ): str,
+                }
+            ),
+        )
+
+    async def async_step_pv_estimate(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            allConfigData = {**self.config_entry.options}
+            k = user_input["pv_estimate"]
+
+            allConfigData["pv_estimate"] = k
+
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                title="Solcast Solar",
+                options=allConfigData,
+            )
+            return self.async_create_entry(title="Solcast Solar", data=None)
+
+        return self.async_show_form(
+            step_id="pv_estimate",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_PV_ESTIMATE,
+                        default="pv_estimate",
+                        description={"suggested_value": self.config_entry.options["pv_estimate"]}
+                    ) : vol.In(["pv_estimate", "pv_estimate10", "pv_estimate90"]),
                 }
             ),
         )

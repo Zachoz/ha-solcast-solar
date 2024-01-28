@@ -26,3 +26,10 @@ set_dampening:
   fields:
     damp_factor:
       example: "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+
+set_pv_estimate:
+  name: Set pv_estimate
+  description: Sets pv_estimate used for forecast generation
+  fields:
+    pv_estimate:
+      example: "pv_estimate10"
