@@ -42,7 +42,7 @@ class SolcastSolarFlowHandler(ConfigFlow, domain=DOMAIN):
                 data = {},
                 options={
                     CONF_API_KEY: user_input[CONF_API_KEY],
-                    CONF_PV_ESTIMATE: user_input[CONF_PV_ESTIMATE],
+                    CONF_PV_ESTIMATE: "pv_estimate",
                     "damp00":1.0,
                     "damp01":1.0,
                     "damp02":1.0,
