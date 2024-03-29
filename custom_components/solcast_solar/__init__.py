@@ -19,11 +19,12 @@ from .const import (
     DOMAIN, 
     SERVICE_CLEAR_DATA, 
     SERVICE_UPDATE, 
-    SERVICE_QUERY_FORECAST_DATA, 
-    CONF_PV_ESTIMATE
+    SERVICE_QUERY_FORECAST_DATA,
+    SERVICE_SET_DAMPENING,
     SERVICE_SET_PV_ESTIMATE,
     SOLCAST_URL,
-    CUSTOM_HOUR_SENSOR
+    CUSTOM_HOUR_SENSOR,
+    CONF_PV_ESTIMATE
 )
 
 from .coordinator import SolcastUpdateCoordinator
@@ -82,6 +83,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.config.path('solcast.json'),
         dt_util.get_time_zone(hass.config.time_zone),
         optdamp,
+        entry.options[CUSTOM_HOUR_SENSOR],
+        entry.options[CONF_PV_ESTIMATE],
     )
 
     solcast = SolcastApi(aiohttp_client.async_get_clientsession(hass), options)
@@ -271,6 +274,16 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         config_entry.options = {**new}
 
         config_entry.version = 6
+
+    #new 4.0.16
+    #allow setting which pv_estimate to use
+    if config_entry.version == 6:
+        new = {**config_entry.options}
+        new[CONF_PV_ESTIMATE] = "pv_estimate"
+
+        config_entry.options = {**new}
+
+        config_entry.version = 7
 
     _LOGGER.debug("Solcast Migration to version %s successful", config_entry.version)
 

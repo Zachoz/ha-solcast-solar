@@ -78,7 +78,9 @@ class SolcastApi:
         self._detailedForecasts = []
         self._loaded_data = False
         self._serialize_lock = asyncio.Lock()
-        self._damp =options.dampening
+        self._damp = options.dampening
+        self._customhoursensor = options.customhoursensor
+        self._pv_estimate = options.pv_estimate
         
     async def serialize_data(self):
         """Serialize data to file."""
@@ -383,7 +385,7 @@ class SolcastApi:
                 if d["period_start"] >= danow and d["period_start"] < da:
                     g.append(d)
             
-            m = sum(z["pv_estimate"] for z in g)
+            m = sum(z[self._pv_estimate] for z in g)
 
             return int(m * 500)
         except Exception as ex:

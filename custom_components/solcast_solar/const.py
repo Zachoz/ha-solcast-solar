@@ -26,6 +26,7 @@ SERVICE_SET_PV_ESTIMATE = "set_pv_estimate"
 
 #new 4.0.8 - integration config options menu
 #new 4.0.15 - integration config options for custom hour (option 3)
+#new 4.0.16 - integration config options for pv_estimate (option4)
 CONFIG_OPTIONS = [
     selector.SelectOptionDict(value="configure_api", label="option1"),
     selector.SelectOptionDict(value="configure_dampening", label="option2"),

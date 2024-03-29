@@ -19,7 +19,7 @@ from .const import DOMAIN, CONFIG_OPTIONS, CONF_PV_ESTIMATE, CUSTOM_HOUR_SENSOR
 class SolcastSolarFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Solcast Solar."""
 
-    VERSION = 6 #v5 started in 4.0.8, #6 started 4.0.15
+    VERSION = 7 #v5 started in 4.0.8, #6 started 4.0.15, #7 started 4.0.16
 
     @staticmethod
     @callback
@@ -98,6 +98,10 @@ class SolcastSolarOptionFlowHandler(OptionsFlow):
                     return await self.async_step_dampen()
                 elif nextAction == "configure_api":
                     return await self.async_step_api()
+                elif nextAction == "configure_customsensor":
+                    return await self.async_step_customsensor()
+                elif nextAction == "configure_pv_estimate":
+                    return await self.async_step_pv_estimate()
                 else:
                     errors["base"] = "incorrect_options_action"
 
